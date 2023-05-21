@@ -19,27 +19,34 @@ const criaNovaLinha = (nome, email, id) => {
 
 const tabela = document.querySelector('[data-tabela]');
 
-tabela.addEventListener('click', (evento) => {
+tabela.addEventListener('click', async (evento) => {
     let ehBotaoDeletar = evento.target.className === 'botao-simples botao-simples--excluir';
 
     if (ehBotaoDeletar) {
-        const linhaCliente = evento.target.closest('[data-id]');
-        let id = linhaCliente.dataset.id;
+        try {
+            const linhaCliente = evento.target.closest('[data-id]');
+            let id = linhaCliente.dataset.id;
 
-        clienteService.removeCliente(id)
-            .then(() => {
-                linhaCliente.remove();
-            })
+            await clienteService.removeCliente(id);
+            linhaCliente.remove();
+        } catch (erro) {
+            console.log(erro);
+            window.location.href = '../telas/erro.html';
+        }
     }
 })
 
-clienteService.listaClientes()
-    .then(data => {
-        if (Array.isArray(data)) {
-            data.forEach((elemento) => {
-                tabela.appendChild(criaNovaLinha(elemento.nome, elemento.email, elemento.id));
-            });
-        } else {
-            console.log('Dados inválidos recebidos do servidor!');
-        }
-    });
+const render = async () => {
+    try {
+        const listaClientes = await clienteService.listaClientes();
+
+        listaClientes.forEach(elemento => {
+            tabela.appendChild(criaNovaLinha(elemento.nome, elemento.email, elemento.id));
+        });
+    } catch (erro) {
+        console.log(erro);
+        window.location.href = '../telas/erro.html';
+    }
+}
+
+render();
